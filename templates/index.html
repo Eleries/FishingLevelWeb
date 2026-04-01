@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>钓鱼条修改工具</title>
+    <link rel="icon" href="static/images/fish.ico" type="image/x-icon">
+    <script src="static/js/tailwindcss.js"></script>
+    <link href="static/css/all.min.css" rel="stylesheet">
+
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?efdabb5da116e556c56c8677a965a0a3";
+          var s = document.getElementsByTagName("script")[0]; 
+          s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#F59E0B',
+                        danger: '#EF4444',
+                        dark: '#1F2937',
+                    },
+                    fontFamily: {
+                    sans: ['VonwaonBitmap', 'system-ui', 'sans-serif'],
+                    mono: ['VonwaonBitmap', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+
+<style>
+@font-face {
+    font-family: 'VonwaonBitmap';
+    src: url('static/fonts/VonwaonBitmap-12px.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+body {
+    font-smooth: never;
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: none;
+}
+
+h1, h2, h3, p, span, a {
+    line-height: 1.5;
+    letter-spacing: 0;
+}
+</style>
+
+<style>
+    body {
+        font-size: 16px;
+    }
+    
+    h1 {
+        font-size: clamp(1.5rem, 4vw, 2rem);
+    }
+    
+    .text-xs {
+        font-size: 14px !important;
+    }
+    
+    button, .btn {
+        font-size: 16px;
+    }
+    
+    #file-info p {
+        font-size: 15px;
+    }
+</style>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .transition-custom {
+                transition: all 0.3s ease;
+            }
+            .shadow-custom {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .bg-blur {
+                backdrop-filter: blur(8px);
+            }
+        }
+    </style>
+    <style>
+        :root {
+            --window-height: 100vh;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: var(--window-height);
+            background-color: #f9fafb;
+        }
+
+        main {
+            flex-grow: 1;
+        }
+        
+        footer {
+            margin-top: auto; 
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-adjust {
+                padding-top: 60px;
+                padding-bottom: 60px;
+            }
+        }
+    </style>
+
+</head>
+<body class="bg-gray-50 font-mono">
+
+    <div class="fixed inset-0 z-0 pointer-events-none">
+        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('static/images/background.png');"></div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-4xl relative z-10 mobile-adjust">
+
+        <header class="text-center mb-8">
+            <div class="flex items-center justify-center mb-2">
+                <div class="w-10 h-10 bg-contain bg-no-repeat" style="background-image: url('static/images/fish.ico')"></div>
+                <h1 class="text-[clamp(1.5rem,4vw,2.5rem)] font-bold text-white text-shadow">
+                    钓鱼条修改工具
+                </h1>
+            </div>
+            <p class="text-gray-600 text-white sm:text-lg">让星露谷没有难钓的鱼</p>
+        </header>
+
+        <main class="flex-grow-1 bg-white/50 backdrop-blur-sm rounded-xl shadow-custom p-6 md:p-1 mb-1 md:max-w-2xl md:mx-auto">
+            <div id="status-message" class="mb-6 p-1 rounded-lg transition-custom opacity-0">
+                <p id="message-text" class="text-center"></p>
+            </div>
+
+            <div id="upload-section" class="mb-8">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 md:p-6 text-center hover:border-primary transition-custom cursor-pointer" id="drop-area">
+                    <div class="flex flex-col items-center">
+                        <h3 class="text-lg md:text-xl font-semibold text-gray-700 mb-2">拖放文件到这里上传</h3>
+                        <p class="text-gray-500 mb-4">或者</p>
+                        <label class="inline-flex items-center bg-primary text-white px-5 py-2.5 rounded-lg shadow-md hover:bg-primary/90 transition-custom cursor-pointer">
+                            <img src="static/images/file.ico" alt="File Icon" class="w-6 h-6 m-2">选择存档文件
+                            <input type="file" id="file-input" class="hidden">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div id="role-selection" class="mb-8 hidden">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">选择要修改的角色</h3>
+                <div id="role-list" class="grid grid-cols-2 gap-8"></div>
+            </div>
+
+            <div id="action-section" class="mb-8 hidden">
+                <div class="flex items-center flex-col sm:flex-row justify-center gap-3">
+                    <button id="modify-btn" class="bg-secondary hover:bg-secondary/90 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-custom flex justify-center w-48">
+                        <img src="static/images/setting.ico" alt="File Icon" class="w-6 h-6 m-2">开始修改
+                    </button>
+                    <button id="restore-btn" class="bg-accent hover:bg-accent/90 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-custom flex items-center justify-center hidden w-48">
+                        <i class="fas fa-undo mr-2"></i>开始还原
+                    </button>
+                </div>
+            </div>
+
+            <div id="download-section" class="mb-8 hidden">
+                <div class="flex justify-center">
+                    <button id="download-btn" class="bg-primary hover:bg-primary/90 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-custom flex items-center justify-center w-48">
+                        <img src="static/images/download.ico" alt="File Icon" class="w-6 h-6 m-2"><span id="download-btn-text">下载修改后的文件</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="file-info" class="bg-gray-50 p-4 rounded-lg hidden">
+                <h3 class="font-semibold text-gray-700 mb-3 flex items-center">
+                    <i class="fas fa-file-text mr-2 text-gray-500"></i>文件信息
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <p class="text-sm text-gray-500">文件名:</p>
+                        <p id="file-name" class="font-medium text-sm md:text-base truncate"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">文件大小:</p>
+                        <p id="file-size" class="font-medium text-sm md:text-base"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">上传时间:</p>
+                        <p id="upload-time" class="font-medium text-sm md:text-base"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">文件类型:</p>
+                        <p id="file-type" class="font-medium text-sm md:text-base"></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div class="hidden flex-grow-1 bg-white/50 backdrop-blur-sm rounded-xl shadow-custom p-6">
+            <h2 class="text-lg md:text-xl font-semibold text-dark mb-4 flex items-center">
+                <i class="fas fa-list-alt text-primary mr-2"></i>操作日志
+            </h2>
+            <div id="log-area" class="bg-gray-900 text-gray-100 p-4 rounded-lg h-48 overflow-y-auto font-mono text-xs md:text-sm">
+                <p class="text-gray-400">等待操作...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <footer id="tcopyright" class="text-center text-white text-xs md:text-sm pb-6 relative z-10">
+      <div class="mb-2 flex items-center justify-center">
+        <a href="https://www.xiaohongshu.com/user/profile/5f86c57c000000000101e04d" target="_blank" class="hover:text-primary hover:underline inline-flex items-center">
+          <img src="static/images/xhs.ico" alt="小红书" class="w-4 h-4 mr-1">@星露谷神医
+        </a>
+        <span class="px-2">|</span>
+        <a href="https://www.douyin.com/user/MS4wLjABAAAAzflzq8u68yW3CrD5LpHfLZJ1qJlK0Jqajgll7hbyD0x5PJhmWhSoW6J9QYb_qVK4?from_tab_name=main&showTab" target="_blank" class="hover:text-primary hover:underline inline-flex items-center">
+          <img src="static/images/dy.ico" alt="抖音" class="w-4 h-4 mr-1">@星露谷神医
+        </a>
+      </div>
+
+      <div class="mb-1 flex items-center justify-center">
+        <a href="https://beian.miit.gov.cn/" target="_blank" class="hover:text-primary hover:underline">黔ICP备2025051936号-1</a>
+        <span class="px-2">|</span>
+        <span class="inline-flex items-center cursor-default select-none">
+          <img src="static/images/gwab.png" alt="公网安备" class="w-4 h-4 mr-1">公网安备
+        </span>
+      </div>
+
+      <div class="mb-1 flex items-center justify-center">
+        <a href="contract" target="_blank" class="hover:text-primary hover:underline">使用条款</a>
+        <span class="px-2">|</span>
+        <a href="privacypolicy" target="_blank" class="hover:text-primary hover:underline">隐私政策</a>
+        <span class="px-2">|</span>
+        <a href="contactus" target="_blank" class="hover:text-primary hover:underline">联系我们</a>
+      </div>
+
+      <div>
+        Copyright © 2024 - 
+        2025 
+        StardewValleyClub. All Rights Reserved
+      </div>
+
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropArea = document.getElementById('drop-area');
+            const fileInput = document.getElementById('file-input');
+            const uploadSection = document.getElementById('upload-section');
+            const actionSection = document.getElementById('action-section');
+            const modifyBtn = document.getElementById('modify-btn');
+            const restoreBtn = document.getElementById('restore-btn');
+            const downloadSection = document.getElementById('download-section');
+            const downloadBtn = document.getElementById('download-btn');
+            const downloadBtnText = document.getElementById('download-btn-text');
+            const statusMessage = document.getElementById('status-message');
+            const messageText = document.getElementById('message-text');
+            const fileInfo = document.getElementById('file-info');
+            const fileName = document.getElementById('file-name');
+            const fileSize = document.getElementById('file-size');
+            const uploadTime = document.getElementById('upload-time');
+            const fileType = document.getElementById('file-type');
+            const logArea = document.getElementById('log-area'); 
+
+            function updateWindowHeight() {
+                const windowHeight = window.innerHeight + 'px';
+                document.documentElement.style.setProperty(
+                    '--window-height', 
+                    windowHeight
+                );
+                logMessage(`更新窗口高度为: ${windowHeight}`);
+            }
+            
+            updateWindowHeight();
+            
+            window.addEventListener('resize', updateWindowHeight);
+            
+            window.addEventListener('orientationchange', updateWindowHeight);
+
+            let uploadedFilePath = '';
+            let backupFilePath = '';
+            let modifiedFilePath = '';
+            let isBackupFile = false;
+            let isRestoreOperation = false;
+
+            function logMessage(message, type = 'info') {
+                if (!logArea) {
+                    console.log(`[日志未显示] ${message}`);
+                    return;
+                }
+                
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('p');
+                logEntry.className = type === 'error' ? 'text-red-400' : 'text-gray-300';
+                logEntry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${message}`;
+                logArea.appendChild(logEntry);
+                logArea.scrollTop = logArea.scrollHeight;
+            }
+
+            function showStatus(message, type = 'info') {
+                const statusMessage = document.getElementById('status-message');
+                const messageText = document.getElementById('message-text');
+                statusMessage.classList.remove('bg-green-100', 'bg-red-100', 'bg-yellow-100');
+                statusMessage.classList.remove('text-green-700', 'text-red-700', 'text-yellow-700');
+                if (type === 'success') {
+                    statusMessage.classList.add('bg-green-100', 'text-green-700');
+                } else if (type === 'error') {
+                    statusMessage.classList.add('bg-red-100', 'text-red-700');
+                } else if (type === 'warning') {
+                    statusMessage.classList.add('bg-yellow-100', 'text-yellow-700');
+                } else {
+                    statusMessage.classList.add('bg-green-100', 'text-green-700');
+                }
+
+                messageText.textContent = message;
+                statusMessage.style.opacity = '1';
+                setTimeout(() => {
+                    statusMessage.style.opacity = '0';
+                }, 5000);
+            }
+
+function handleFileUpload(file) {
+    if (!file) {
+        showStatus('请选择文件', 'error');
+        logMessage('请选择文件', 'error');
+        return;
+    }
+
+    fileName.textContent = file.name;
+    fileSize.textContent = formatFileSize(file.size);
+    uploadTime.textContent = new Date().toLocaleString();
+    fileType.textContent = file.type || '未知类型';
+    //fileInfo.classList.remove('hidden');
+
+    actionSection.classList.add('hidden');
+    downloadSection.classList.add('hidden');
+    isRestoreOperation = false;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    showStatus('正在上传文件...', 'info');
+    logMessage(`准备上传文件: ${file.name}`);
+
+    fetch('/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            showStatus(data.message);
+            logMessage(data.message);
+
+            if (data.file_path) {
+                uploadedFilePath = data.file_path;
+                backupFilePath = '';
+                modifiedFilePath = '';
+                isBackupFile = uploadedFilePath.includes('_FishBAK');
+                actionSection.classList.remove('hidden');
+                if (isBackupFile) {
+                    modifyBtn.classList.add('hidden');
+                    restoreBtn.classList.remove('hidden');
+                    logMessage('检测到这是一个备份文件，可以进行还原操作');
+                } else {
+                    modifyBtn.classList.remove('hidden');
+                    restoreBtn.classList.add('hidden');
+                    logMessage('可以对这个文件进行修改操作');
+                }
+
+                // 显示角色选择
+                if (data.names && data.names.length > 0) {
+                    const roleSelection = document.getElementById('role-selection');
+                    const roleList = document.getElementById('role-list');
+                    roleList.innerHTML = '';
+
+                    // 创建房主列
+                    const hostDiv = document.createElement('div');
+                    hostDiv.className = 'space-y-2';
+                    const hostTitle = document.createElement('h4');
+                    hostTitle.className = 'font-medium text-gray-700';
+                    hostTitle.textContent = '房主';
+                    hostDiv.appendChild(hostTitle);
+
+                    // 创建访客列
+                    const guestDiv = document.createElement('div');
+                    guestDiv.className = 'space-y-2';
+                    const guestTitle = document.createElement('h4');
+                    guestTitle.className = 'font-medium text-gray-700';
+                    guestTitle.textContent = '访客';
+                    guestDiv.appendChild(guestTitle);
+
+                    data.names.forEach((name, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'flex items-center';
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.id = `role-${index}`;
+                        checkbox.name = 'selected_roles';
+                        checkbox.value = index;
+                        if (index === 0) checkbox.checked = true; // 房主默认选中
+                        const label = document.createElement('label');
+                        label.htmlFor = `role-${index}`;
+                        label.className = 'ml-2 text-gray-700';
+                        label.textContent = name;
+
+                        div.appendChild(checkbox);
+                        div.appendChild(label);
+
+                        if (index === 0) {
+                            hostDiv.appendChild(div);
+                        } else {
+                            guestDiv.appendChild(div);
+                        }
+                    });
+
+                    roleList.appendChild(hostDiv);
+                    roleList.appendChild(guestDiv);
+                    roleSelection.classList.remove('hidden');
+                }
+            } else {
+                throw new Error('上传失败，未收到文件路径');
+            }
+        } else {
+            throw new Error('上传失败，未收到服务器响应');
+        }
+    })
+    .catch(error => {
+        showStatus(`上传失败: ${error.message}`, 'error');
+        logMessage(`上传失败: ${error.message}`, 'error');
+    });
+}
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            function modifyFile() {
+                if (!uploadedFilePath) {
+                    showStatus('请先上传文件', 'error');
+                    logMessage('请先上传文件', 'error');
+                    return;
+                }
+                showStatus('正在修改文件...', 'info');
+                logMessage('开始修改文件...');
+                downloadSection.classList.add('hidden');
+                isRestoreOperation = false;
+                fetch('/modify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `file_path=${encodeURIComponent(uploadedFilePath)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        showStatus(data.message);
+                        logMessage(data.message);
+                        backupFilePath = data.backup_path || '';
+                        modifiedFilePath = data.modified_path || '';
+                        downloadSection.classList.remove('hidden');
+                        downloadBtnText.textContent = '下载修改后的文件';
+                    } else {
+                        throw new Error('修改失败，未收到服务器响应');
+                    }
+                })
+                .catch(error => {
+                    showStatus(`修改失败: ${error.message}`, 'error');
+                    logMessage(`修改失败: ${error.message}`, 'error');
+                    downloadSection.classList.add('hidden');
+                });
+            }
+
+            function restoreFile() {
+                if (!uploadedFilePath) {
+                    showStatus('请先上传文件', 'error');
+                    logMessage('请先上传文件', 'error');
+                    return;
+                }
+                showStatus('正在还原文件...', 'info');
+                logMessage('开始还原文件...');
+                downloadSection.classList.add('hidden');
+                isRestoreOperation = true;
+                fetch('/restore', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `backup_path=${encodeURIComponent(uploadedFilePath)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        showStatus(data.message);
+                        logMessage(data.message);
+                        modifiedFilePath = data.original_path || '';
+                        downloadSection.classList.remove('hidden');
+                        downloadBtnText.textContent = '下载还原后的文件';
+                    } else {
+                        throw new Error('还原失败，未收到服务器响应');
+                    }
+                })
+                .catch(error => {
+                    showStatus(`还原失败: ${error.message}`, 'error');
+                    logMessage(`还原失败: ${error.message}`, 'error');
+                    downloadSection.classList.remove('hidden');
+                });
+            }
+            function downloadFiles() {
+                if (!modifiedFilePath) {
+                    showStatus('没有可下载的文件', 'error');
+                    logMessage('没有可下载的文件', 'error');
+                    return;
+                }
+                
+                logMessage('准备下载文件...');
+                if (isRestoreOperation) {
+                    downloadSingleFile(modifiedFilePath);
+                } else {
+                    downloadMultipleFiles([modifiedFilePath, backupFilePath]);
+                }
+            }
+            function downloadSingleFile(filePath) {
+                if (!filePath) return;
+                
+                const a = document.createElement('a');
+                a.href = `/download?file_path=${encodeURIComponent(filePath)}`;
+                a.download = filePath.split('/').pop();
+                document.body.appendChild(a);
+                const fileName = filePath.split('/').pop();
+                logMessage(`开始下载文件: ${fileName}`);         
+                a.click();
+                document.body.removeChild(a);
+                showStatus('文件下载已开始');
+            }
+            function downloadMultipleFiles(filePaths) {
+                const validFilePaths = filePaths.filter(path => path && path.trim() !== '');
+                if (validFilePaths.length === 0) {
+                    showStatus('没有可下载的文件', 'error');
+                    logMessage('没有可下载的文件', 'error');
+                    return;
+                }
+                function downloadNext(i) {
+                    if (i >= validFilePaths.length) return;
+                    
+                    const filePath = validFilePaths[i];
+                    const a = document.createElement('a');
+                    a.href = `/download?file_path=${encodeURIComponent(filePath)}`;
+                    a.download = filePath.split('/').pop();
+                    document.body.appendChild(a);
+                    const fileName = filePath.split('/').pop();
+                    logMessage(`开始下载文件 (${i+1}/${validFilePaths.length}): ${fileName}`);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    setTimeout(() => downloadNext(i + 1), 1000);
+                }
+                showStatus(`准备下载 ${validFilePaths.length} 个文件...`);
+                downloadNext(0);
+            }
+            dropArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('border-primary');
+                this.classList.add('bg-blue-50');
+            });
+
+            dropArea.addEventListener('dragleave', function() {
+                this.classList.remove('border-primary');
+                this.classList.remove('bg-blue-50');
+            });
+
+            dropArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('border-primary');
+                this.classList.remove('bg-blue-50');
+                
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    handleFileUpload(e.dataTransfer.files[0]);
+                }
+            });
+
+            modifyBtn.addEventListener('click', function() {
+                if (!uploadedFilePath) {
+                    showStatus('请先上传文件', 'error');
+                    logMessage('请先上传文件', 'error');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file_path', uploadedFilePath);
+                const selected = [];
+                document.querySelectorAll('input[name="selected_roles"]:checked').forEach(cb => {
+                    selected.push(cb.value);
+                });
+                if (selected.length === 0) {
+                    showStatus('请至少选择一个角色', 'error');
+                    logMessage('请至少选择一个角色', 'error');
+                    return;
+                }
+                selected.forEach(idx => formData.append('selected_indices', idx));
+
+                showStatus('正在修改文件...', 'info');
+                logMessage('正在修改文件...');
+
+                fetch('/modify', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        showStatus(data.message);
+                        logMessage(data.message);
+
+                        if (data.modified_path) {
+                            modifiedFilePath = data.modified_path;
+                            backupFilePath = data.backup_path;
+                            downloadSection.classList.remove('hidden');
+                            downloadBtnText.textContent = '下载修改后的文件';
+                            logMessage('文件修改完成，可以下载');
+                        }
+                    } else {
+                        throw new Error('修改失败，未收到服务器响应');
+                    }
+                })
+                .catch(error => {
+                    showStatus(`修改失败: ${error.message}`, 'error');
+                    logMessage(`修改失败: ${error.message}`, 'error');
+                });
+            });
+            restoreBtn.addEventListener('click', restoreFile);
+            downloadBtn.addEventListener('click', downloadFiles);
+
+            fileInput.addEventListener('change', function(e) {
+                if (this.files && this.files.length > 0) {
+                    handleFileUpload(this.files[0]);
+                }
+            });
+            logMessage('应用已启动，等待上传文件...');
+        });
+    </script>
+</body>
+</html>

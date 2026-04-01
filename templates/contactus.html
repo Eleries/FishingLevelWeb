@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>联系我们</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+
+<body>
+    <h1>联系我们</h1>
+    <p>如果您有任何问题、建议或反馈，请填写以下表格，我们将尽快回复您。</p>
+    <form action="#">
+        <label for="name">姓名：</label>
+        <input type="text" id="name" name="name" required>
+        <label for="email">电子邮件地址：</label>
+        <input type="email" id="email" name="email" required>
+        <label for="message">消息内容：</label>
+        <textarea id="message" name="message" rows="5" required></textarea>
+        <button type="submit">发送消息</button>
+    </form>
+</body>
+
+</html>
